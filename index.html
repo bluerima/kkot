@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 아이디 & 비밀번호 찾기 🔑</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Gaegu & Nanum Gothic) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            pink: '#FF8EAE',
+                            lightpink: '#FFF0F5',
+                            yellow: '#FFD966',
+                            lightyellow: '#FFFDF0',
+                            blue: '#72C1F9',
+                            mint: '#A2E8DD',
+                            purple: '#C3B1E1',
+                            dark: '#4A4A4A'
+                        }
+                    },
+                    fontFamily: {
+                        cute: ['Gaegu', 'sans-serif'],
+                        sans: ['Nanum Gothic', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FFF8FA;
+            background-image: radial-gradient(#FFD966 1.5px, transparent 1.5px), radial-gradient(#72C1F9 1.5px, #FFF8FA 1.5px);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+
+        .bounce-gentle {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(255, 142, 174, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-shadow {
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-brand-dark flex flex-col items-center justify-between p-4 sm:p-6">
+
+    <!-- Header Section -->
+    <header class="w-full max-w-md text-center pt-4 pb-2">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-pink-500 font-cute flex items-center justify-center gap-2">
+            <span class="bounce-gentle text-4xl">🐥</span>
+            <span>아이디 & 비밀번호 검색</span>
+            <span class="bounce-gentle text-4xl">✨</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1">
+            이름을 입력하고 검색 버튼을 눌러주세요!
+        </p>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-md my-auto">
+        <div class="bg-white border-4 border-brand-pink rounded-3xl p-6 sm:p-8 card-shadow relative overflow-hidden">
+            
+            <!-- Deco Elements -->
+            <div class="absolute -top-6 -right-6 w-16 h-16 bg-brand-mint rounded-full opacity-40"></div>
+            <div class="absolute -bottom-6 -left-6 w-16 h-16 bg-brand-yellow rounded-full opacity-40"></div>
+
+            <!-- Search Form -->
+            <div class="relative z-10">
+                <label for="student-name" class="block text-sm font-bold text-gray-700 mb-2 flex items-center justify-between">
+                    <span><i class="fa-solid fa-user-tag text-brand-pink mr-1"></i> 학생 이름</span>
+                    <span class="text-xs text-gray-400 font-normal">* 정확한 이름을 입력하세요</span>
+                </label>
+                
+                <div class="flex gap-2 mb-4">
+                    <input 
+                        type="text" 
+                        id="student-name" 
+                        placeholder="예: 홍길동" 
+                        class="w-full px-4 py-3 text-lg border-2 border-pink-200 rounded-2xl focus:outline-none focus:border-brand-pink input-shadow transition-colors placeholder-gray-300"
+                        onkeypress="if(event.key === 'Enter') searchStudent()"
+                        autocomplete="off"
+                    />
+                    <button 
+                        onclick="searchStudent()" 
+                        class="bg-brand-pink hover:bg-pink-500 text-white font-bold px-5 rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-1 min-w-[80px]"
+                    >
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>검색</span>
+                    </button>
+                </div>
+
+                <!-- Status / Loading Indicator -->
+                <div id="loading" class="hidden text-center py-6">
+                    <div class="inline-block animate-spin text-3xl text-brand-pink mb-2">
+                        <i class="fa-solid fa-spinner"></i>
+                    </div>
+                    <p class="text-sm font-bold text-pink-400">안전하게 정보를 불러오는 중...</p>
+                </div>
+
+                <!-- Initial Help Message -->
+                <div id="initial-msg" class="text-center py-6 bg-pink-50 rounded-2xl border border-pink-100">
+                    <div class="text-3xl mb-1">🔍</div>
+                    <p class="text-sm text-gray-600 font-medium">이름을 입력하면 아이디와 비밀번호가 표시됩니다.</p>
+                </div>
+
+                <!-- Not Found Message -->
+                <div id="not-found" class="hidden text-center py-6 bg-yellow-50 rounded-2xl border border-yellow-200">
+                    <div class="text-3xl mb-1">😢</div>
+                    <p class="text-base font-bold text-gray-700 mb-1">일치하는 정보를 찾을 수 없어요!</p>
+                    <p class="text-xs text-gray-500">이름이 오타 없이 정확한지 확인 후 다시 시도해 주세요.</p>
+                </div>
+
+                <!-- Single Result View -->
+                <div id="result-single" class="hidden bg-brand-lightpink rounded-2xl border-2 border-pink-200 p-5 mt-2 space-y-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-pink-200">
+                        <span class="text-xs font-bold bg-brand-pink text-white px-3 py-1 rounded-full" id="res-grade-class">학년반: -</span>
+                        <span class="text-lg font-bold text-gray-800" id="res-name">홍길동</span>
+                    </div>
+
+                    <!-- ID Card -->
+                    <div class="bg-white p-3 rounded-xl border border-pink-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-400 font-bold mb-0.5">아이디 (ID)</p>
+                            <p class="text-lg font-extrabold text-blue-600 tracking-wide font-mono" id="res-id">-</p>
+                        </div>
+                        <button onclick="copyToClipboard('res-id')" class="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
+                            <i class="fa-regular fa-copy"></i> 복사
+                        </button>
+                    </div>
+
+                    <!-- Password Card -->
+                    <div class="bg-white p-3 rounded-xl border border-pink-100 flex items-center justify-between">
+                        <div class="w-full mr-2">
+                            <p class="text-xs text-gray-400 font-bold mb-0.5">비밀번호 (PW)</p>
+                            <p class="text-lg font-extrabold text-pink-600 tracking-wide font-mono" id="res-pw">-</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="togglePasswordVisibility()" id="btn-pw-toggle" class="text-xs bg-pink-50 text-pink-600 border border-pink-200 px-2.5 py-1.5 rounded-lg hover:bg-pink-100 transition-colors">
+                                <i class="fa-regular fa-eye-slash" id="icon-pw-toggle"></i>
+                            </button>
+                            <button onclick="copyToClipboard('res-pw', true)" class="text-xs bg-pink-50 text-pink-600 border border-pink-200 px-2.5 py-1.5 rounded-lg hover:bg-pink-100 transition-colors">
+                                <i class="fa-regular fa-copy"></i> 복사
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multiple Results View (If multiple students share same name) -->
+                <div id="result-multiple" class="hidden mt-2">
+                    <p class="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-users text-brand-pink"></i>
+                        <span>여러 명의 결과가 검색되었습니다. 본인의 학년/반을 클릭하세요:</span>
+                    </p>
+                    <div id="multiple-list" class="space-y-2">
+                        <!-- Dynamic Multi-items injected here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="w-full max-w-md text-center py-4 text-xs text-gray-400">
+        <span>© 학생 로그인 도우미</span>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-4 py-2.5 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 flex items-center gap-2">
+        <i class="fa-solid fa-check-circle text-green-400"></i>
+        <span id="toast-msg">클립보드에 복사되었습니다!</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Google Apps Script Web App URL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL_JyZajdxuJjc4NGAW2CE53lKqih3nC5_oPvJz6Puz9NiQzD9IDdtpWafaDF9pl1BDA/exec';
+        
+        let isPasswordHidden = false;
+        let currentActualPw = '';
+
+        async function searchStudent() {
+            const inputEl = document.getElementById('student-name');
+            const searchName = inputEl.value.trim();
+
+            if (!searchName) {
+                showToast('검색할 학생 이름을 입력해 주세요!');
+                inputEl.focus();
+                return;
+            }
+
+            hideAllViews();
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                // Call GAS Backend API with student name parameter
+                const targetUrl = `${GAS_URL}?name=${encodeURIComponent(searchName)}`;
+                const response = await fetch(targetUrl);
+                
+                if (!response.ok) {
+                    throw new Error('서버 응답 오류');
+                }
+
+                const result = await response.json();
+                document.getElementById('loading').classList.add('hidden');
+
+                if (result.status === 'error') {
+                    showToast(result.message || '오류가 발생했습니다.');
+                    document.getElementById('not-found').classList.remove('hidden');
+                    return;
+                }
+
+                const matches = result.data || [];
+
+                if (matches.length === 0) {
+                    document.getElementById('not-found').classList.remove('hidden');
+                } else if (matches.length === 1) {
+                    displaySingleResult(matches[0]);
+                } else {
+                    displayMultipleResults(matches);
+                }
+
+            } catch (error) {
+                console.error("GAS Fetch Error:", error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('not-found').classList.remove('hidden');
+                showToast('서버 연결에 실패했습니다. 다시 시도해 주세요.');
+            }
+        }
+
+        function hideAllViews() {
+            document.getElementById('initial-msg').classList.add('hidden');
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('not-found').classList.add('hidden');
+            document.getElementById('result-single').classList.add('hidden');
+            document.getElementById('result-multiple').classList.add('hidden');
+        }
+
+        function displaySingleResult(student) {
+            hideAllViews();
+            document.getElementById('res-grade-class').textContent = student.gradeClass ? `${student.gradeClass}` : '학년/반 미지정';
+            document.getElementById('res-name').textContent = student.name;
+            document.getElementById('res-id').textContent = student.id || '(정보 없음)';
+            
+            currentActualPw = student.pw || '(정보 없음)';
+            updatePasswordDisplay();
+
+            document.getElementById('result-single').classList.remove('hidden');
+        }
+
+        function togglePasswordVisibility() {
+            isPasswordHidden = !isPasswordHidden;
+            updatePasswordDisplay();
+        }
+
+        function updatePasswordDisplay() {
+            const pwEl = document.getElementById('res-pw');
+            const iconEl = document.getElementById('icon-pw-toggle');
+
+            if (isPasswordHidden && currentActualPw !== '(정보 없음)') {
+                pwEl.textContent = '••••••••';
+                if (iconEl) iconEl.className = 'fa-regular fa-eye';
+            } else {
+                pwEl.textContent = currentActualPw;
+                if (iconEl) iconEl.className = 'fa-regular fa-eye-slash';
+            }
+        }
+
+        function displayMultipleResults(list) {
+            hideAllViews();
+            const container = document.getElementById('multiple-list');
+            container.innerHTML = '';
+
+            list.forEach((student) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white border-2 border-pink-100 hover:border-brand-pink p-3 rounded-xl flex justify-between items-center cursor-pointer transition-all hover:shadow-md';
+                card.onclick = () => displaySingleResult(student);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs bg-pink-100 text-pink-700 font-bold px-2.5 py-1 rounded-full">${student.gradeClass || '정보 없음'}</span>
+                        <span class="text-sm font-bold text-gray-800">${student.name}</span>
+                    </div>
+                    <span class="text-xs text-brand-pink font-bold">선택 <i class="fa-solid fa-chevron-right text-xs"></i></span>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('result-multiple').classList.remove('hidden');
+        }
+
+        function copyToClipboard(elementId, isPw = false) {
+            const textToCopy = isPw ? currentActualPw : document.getElementById(elementId).textContent;
+            
+            if (!textToCopy || textToCopy === '(정보 없음)') {
+                showToast('복사할 정보가 없습니다.');
+                return;
+            }
+
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('클립보드에 복사되었습니다! 📋');
+            } catch (err) {
+                showToast('복사에 실패했습니다.');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
